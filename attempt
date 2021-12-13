@@ -1,1 +1,80 @@
+int x=0;        // store adc value 
+int dataReady=0; // toggle variable
 
+// -------- Functions --------- //
+static inline void initTimer(void) {
+  /*Write code to initialize Timer 1*/
+   //SET PRESCALER IN REGISTER B//
+  TCCR1B = (1<<CS10);  // no prescaling  
+  
+  TIMSK1 = (1<<TOIE1); //OVERFLOW INTERRUPT ENABLE //
+  TCNT1=12736; //RELOAD VALUE {BOTTOM) (330 Hz sampling freq, >twice ecg freq (150hz)) 
+
+}
+
+static inline void initIOPorts(void) {
+  /*Write code to initialize the GPIO ports (pins) that you need*/
+     DDRB |= (1<<PB5); //initialize pin13//
+}
+
+static inline void initADC(void) {
+  /*Write code to initialize the ADC*/
+    ADMUX |= (1<<REFS0);      // (vcc) // 
+
+// prescaler // 
+ADCSRA |= (1<<ADPS2);   
+ADCSRA |= (1<<ADPS1);
+
+
+ADCSRA |= (1<<ADIE); // enable interrupt 
+ADCSRA |= (1<<ADEN); // enable adc
+ADCSRA |= (1<<ADATE); // enable autotrigger 
+ADCSRB |= (1<<ADTS2) | (1<<ADTS1);  // set trigger source as timer 1 overflow
+  ADCSRA |= (1<<ADSC); // start conversion
+  
+}
+
+// ------ Interrupt Service Routine ------ //
+ISR(TIMER1_OVF_vect) {
+  /*This is the interrupt service routine for Timer 1 Overflow*/
+    
+TCNT1=12736; //RELOAD VALUE {BOTTOM)
+
+}
+
+ISR(ADC_vect) {
+  /*This is the interrupt service routine for the ADC
+   * It is executed when the ADC completes a conversion.
+   */
+  
+  
+   //Write code to store the ADC value in the variable x
+  x = ADC;
+  dataReady=1; // toggle ON in isr => once per conversion
+   
+}
+
+int main(void) {
+  Serial.begin(250000);
+  noInterrupts();           
+  initIOPorts();
+  initTimer();
+  initADC();
+  interrupts();
+  
+  while(1) {
+    Serial.flush();
+    // You will have to add code here to send x through the serial port
+    // At its most basic the code will be Serial.println(x) though you
+    // may need some more.
+    if (dataReady == 1){
+      Serial.println(x);
+      dataReady = 0;  // toggle OFF
+    }
+    
+   
+   
+    }
+  
+  return 0; /* This line is never reached */
+}
