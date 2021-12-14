@@ -8,7 +8,7 @@ static inline void initTimer(void) {
   TCCR1B = (1<<CS10);  // no prescaling  
   
   TIMSK1 = (1<<TOIE1); //OVERFLOW INTERRUPT ENABLE //
-  TCNT1=12736; //RELOAD VALUE {BOTTOM) (330 Hz sampling freq, >twice ecg freq (150hz)) 
+  TCNT1=49536; //RELOAD VALUE {BOTTOM) (1000 Hz sampling freq, >twice ecg freq (150hz)) 
 
 }
 
